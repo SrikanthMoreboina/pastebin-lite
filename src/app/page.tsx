@@ -128,7 +128,7 @@ export default function Home() {
                 <div>
                   <label className="text-sm text-gray-400 flex items-center gap-2 mb-1">
                     <Clock className="w-4 h-4" />
-                    Expire (seconds)
+                    Expiry time (sec) (Optional)
                   </label>
                   <input
                     type="number"
@@ -143,7 +143,7 @@ export default function Home() {
                 <div>
                   <label className="text-sm text-gray-400 flex items-center gap-2 mb-1">
                     <Eye className="w-4 h-4" />
-                    Max views
+                    Set Max views (Optional)
                   </label>
                   <input
                     type="number"
