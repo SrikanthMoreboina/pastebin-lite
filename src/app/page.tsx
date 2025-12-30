@@ -13,43 +13,77 @@ export default function Home() {
   const [copied, setCopied] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setResult('');
-    setCopied(false);
-    setLoading(true);
+  e.preventDefault();
+  setError('');
+  setResult('');
+  setLoading(true);
 
-    const trimmedContent = content.trim();
-    if (!trimmedContent) {
-      setError('Message cannot be empty');
+  const trimmedContent = content.trim();
+  if (!trimmedContent) {
+    setError('Message cannot be empty');
+    setLoading(false);
+    return;
+  }
+
+  // Only include valid optional fields
+  const payload: {
+    content: string;
+    ttl_seconds?: number;
+    max_views?: number;
+  } = {
+    content: trimmedContent,
+  };
+
+  // TTL: only add if valid number >=1
+  if (ttl.trim() !== '') {
+    const ttlNum = Number(ttl.trim());
+    if (!isNaN(ttlNum) && ttlNum >= 1) {
+      payload.ttl_seconds = ttlNum;
+    } else {
+      setError('Expire time must be a number ≥ 1');
       setLoading(false);
       return;
     }
+  }
 
-    const payload: any = { content: trimmedContent };
-    if (ttl) payload.ttl_seconds = Number(ttl);
-    if (maxViews) payload.max_views = Number(maxViews);
+  // Max views: only add if valid number >=1
+  if (maxViews.trim() !== '') {
+    const viewsNum = Number(maxViews.trim());
+    if (!isNaN(viewsNum) && viewsNum >= 1) {
+      payload.max_views = viewsNum;
+    } else {
+      setError('Max views must be a number ≥ 1');
+      setLoading(false);
+      return;
+    }
+  }
 
-    try {
-      const res = await fetch('/api/pastes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+  try {
+    const res = await fetch('/api/pastes', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed');
+    const data = await res.json();
 
+    if (res.ok) {
       setResult(data.url);
       setContent('');
       setTtl('');
       setMaxViews('');
-    } catch (err: any) {
-      setError(err.message || 'Something went wrong');
-    } finally {
-      setLoading(false);
+    } else {
+      setError(data.error || 'Failed to create link');
     }
-  };
+  } catch (err) {
+    setError('Network error. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const copyToClipboard = async () => {
     await navigator.clipboard.writeText(result);
